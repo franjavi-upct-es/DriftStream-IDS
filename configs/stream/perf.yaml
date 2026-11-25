@@ -1,0 +1,7 @@
+# configs/stream/perf.yaml
+# Overrides for the E6 throughput/latency experiment.
+bootstrap_servers: 127.0.0.1:9092
+partitions: 3
+trigger_seconds: 1
+replay_speed: max
+watermark_seconds: 120

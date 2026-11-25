@@ -1,0 +1,4 @@
+# configs/detector/ddm.yaml
+# Supervised: River DDM with library defaults (P1).
+_target_: driftstream.detectors.ddm.DDMDetector
+kind: supervised

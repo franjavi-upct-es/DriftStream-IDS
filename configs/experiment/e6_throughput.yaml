@@ -1,0 +1,10 @@
+# @package _global_
+# configs/experiment/e6_throughput.yaml
+# E6: throughput and latency of the stream pipeline (ARCHITECTURE.md §11.7).
+experiment: e6_throughput
+defaults:
+  - override /dataset: cicids2017
+  - override /stream: perf
+partitions_levels: [1, 3, 6]
+triggers_seconds: [1, 5]
+scorer_variants: [foreach_batch, map_in_pandas]  # ADR-008

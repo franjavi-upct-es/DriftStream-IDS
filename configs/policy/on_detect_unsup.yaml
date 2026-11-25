@@ -1,0 +1,4 @@
+# configs/policy/on_detect_unsup.yaml
+# ODU: retrain once m_min labels after the unsupervised alarm exist.
+_target_: driftstream.policies.on_detect.OnDetectUnsupervised
+m_min: 500

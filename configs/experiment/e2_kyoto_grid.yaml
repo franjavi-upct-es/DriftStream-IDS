@@ -1,0 +1,21 @@
+# @package _global_
+# configs/experiment/e2_kyoto_grid.yaml
+# E2: Kyoto 2006+ factorial grid (ARCHITECTURE.md §11.4).
+experiment: e2_kyoto_grid
+defaults:
+  - override /dataset: kyoto2006
+  - override /hydra/launcher: joblib
+policy:
+  period_seconds: 604800  # periodic retrain every 7 days
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
+  sweeper:
+    params:
+      oracle.delay.mean_seconds: 0,3600,86400,604800
+      oracle.budget: 0.001,0.01,0.05
+      selector: random,hybrid
+      detector: none,adwin,ks_scores
+      learner: arf,batch
+      seed: range(0,5)

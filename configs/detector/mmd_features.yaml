@@ -1,0 +1,7 @@
+# configs/detector/mmd_features.yaml
+# Unsupervised: RFF-approximated MMD on standardised features (P2).
+_target_: driftstream.detectors.mmd_features.MMDFeatureDetector
+kind: unsupervised
+n_features: 256
+n_permutations: 200
+subsample: 500

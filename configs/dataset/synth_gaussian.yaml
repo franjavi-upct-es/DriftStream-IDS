@@ -1,0 +1,9 @@
+# configs/dataset/synth_gaussian.yaml
+# Two-class Gaussian stream with an abrupt mean shift at t0 (E0).
+name: synth_gaussian
+n_samples: 200000
+n_warm: 20000
+rate: 10.0 # lambda, flows per second of event time
+t0_index: 100000 # index of the first post-drift sample
+shift: 1.0 # mean-shift magnitude (controls delta-epsilon)
+dim: 10

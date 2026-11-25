@@ -1,0 +1,8 @@
+# configs/evaluation/default.yaml
+# Prequential evaluation settings (ARCHITECTURE.md §10.2).
+window: 10000             # flows in the windowed macro-F1
+sample_every: 1000        # flows between metric samples
+fading_alpha: 0.999
+recovery_kappa: 0.05
+recovery_stable_samples: 5
+save_predictions: false

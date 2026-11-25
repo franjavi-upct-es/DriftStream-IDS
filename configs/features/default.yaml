@@ -1,0 +1,3 @@
+# configs/features/default.yaml
+# Main feature profile (ARCHITECTURE.md §8.4).
+profile: default

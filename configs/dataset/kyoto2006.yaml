@@ -1,0 +1,11 @@
+# configs/dataset/kyoto2006.yaml
+# Kyoto 2006+ honeypot sessions; detector-output columns removed in ETL.
+name: kyoto2006
+path: data/processed/kyoto2006/flows.parquet
+source:
+    base_url: https://www.takakura.com/Kyoto_data/new_data201704/
+    archive: monthly # <YYYY>/<YYYYMM>.zip; available 2006-11 .. 2015-12
+window: { start: "2007-01-01", end: "2009-12-31" }
+warmup: { days: 30 } # first 30 days, fully labelled
+target_sessions: 1500000 # hash-based sampling target
+onsets: null # unknown onsets: analysed via regret

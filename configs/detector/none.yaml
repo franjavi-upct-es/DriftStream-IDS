@@ -1,0 +1,4 @@
+# configs/detector/none.yaml
+# No external detector; learner adapts on its own (ARF internal ADWIN).
+_target_: null
+kind: none

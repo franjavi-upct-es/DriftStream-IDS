@@ -1,0 +1,65 @@
+# .importlinter
+# Import contracts (PROJECT_STRUCTURE.md §4.3). Checked by `make lint`.
+
+[importlinter]
+root_package = driftstream
+
+[importlinter:contract:core-is-foundation]
+name = core imports nothing from the project
+type = forbidden
+source_modules =
+    driftstream.core
+forbidden_modules =
+    driftstream.data
+    driftstream.etl
+    driftstream.oracle
+    driftstream.selection
+    driftstream.learners
+    driftstream.detectors
+    driftstream.policies
+    driftstream.simulate
+    driftstream.evaluation
+    driftstream.theory
+    driftstream.analysis
+    driftstream.tracking
+    driftstream.deploy
+    driftstream.cli
+
+[importlinter:contract:components-independent]
+name = components do not import each other
+type = independence
+modules =
+    driftstream.oracle
+    driftstream.selection
+    driftstream.learners
+    driftstream.detectors
+    driftstream.policies
+    driftstream.evaluation
+
+[importlinter:contract:deploy-is-leaf]
+name = nothing imports deploy
+type = forbidden
+source_modules =
+    driftstream.core
+    driftstream.data
+    driftstream.etl
+    driftstream.oracle
+    driftstream.selection
+    driftstream.learners
+    driftstream.detectors
+    driftstream.policies
+    driftstream.simulate
+    driftstream.evaluation
+    driftstream.theory
+    driftstream.analysis
+    driftstream.tracking
+forbidden_modules =
+    driftstream.deploy
+
+[importlinter:contract:analysis-never-simulates]
+name = analysis reads stored outputs and never runs a simulation
+type = forbidden
+source_modules =
+    driftstream.analysis
+forbidden_modules =
+    driftstream.simulate

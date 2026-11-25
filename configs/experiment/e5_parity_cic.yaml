@@ -1,0 +1,11 @@
+# @package _global_
+# configs/experiment/e5_parity_cic.yaml
+# E5: streaming parity on a CIC Wednesday 09:00-10:00 slice (ARCHITECTURE.md §11.7).
+experiment: e5_parity_cic
+defaults:
+  - override /dataset: cicids2017
+slice: {start: "2017-07-05T09:00:00Z", end: "2017-07-05T10:00:00Z"}
+stream:
+  partitions: 1
+  replay_speed: 60
+triggers_seconds: [1, 5, 30]

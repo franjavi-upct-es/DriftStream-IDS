@@ -1,0 +1,3 @@
+# configs/selector/random.yaml
+# Query with probability B through the token bucket (unbiased).
+_target_: driftstream.selection.random_selector.RandomSelector

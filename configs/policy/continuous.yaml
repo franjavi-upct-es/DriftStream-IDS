@@ -1,0 +1,3 @@
+# configs/policy/continuous.yaml
+# LearnOne on every delayed label (online learners only).
+_target_: driftstream.policies.continuous.ContinuousPolicy

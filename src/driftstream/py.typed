@@ -1,0 +1,2 @@
+# src/driftstream/py.typed
+# PEP 561 marker: this package ships inline type information.

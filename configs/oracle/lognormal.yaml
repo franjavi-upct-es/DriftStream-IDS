@@ -1,0 +1,9 @@
+# configs/oracle/lognormal.yaml
+# Heavy-tailed delay: LogNormal with mean D (robustness variant).
+_target_: driftstream.oracle.label_oracle.LabelOracle
+delay:
+  _target_: driftstream.oracle.delay_models.LogNormalDelay
+  mean_seconds: 1800
+  sigma: 1.0
+budget: 0.01
+bucket_capacity: 50

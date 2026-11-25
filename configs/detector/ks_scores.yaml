@@ -1,0 +1,9 @@
+# configs/detector/ks_scores.yaml
+# Unsupervised: two-sample KS on model scores with persistence.
+_target_: driftstream.detectors.ks_scores.KSScoreDetector
+kind: unsupervised
+w_ref: 5000
+w_test: 1000
+check_every: 500
+alpha: 0.001
+persistence: 2

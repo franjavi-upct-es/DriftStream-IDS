@@ -1,0 +1,3 @@
+# configs/features/strict.yaml
+# Port/protocol shortcuts removed (ablation A-FEAT).
+profile: strict

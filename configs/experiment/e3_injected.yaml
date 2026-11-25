@@ -1,0 +1,21 @@
+# @package _global_
+# configs/experiment/e3_injected.yaml
+# E3: injected-drift ablation on CIC features (ARCHITECTURE.md §11.5).
+experiment: e3_injected
+defaults:
+  - override /dataset: cicids2017
+  - override /hydra/launcher: joblib
+injection:
+  family: null            # held-out family, chosen in T4.5
+  prevalence: 0.05        # pi, controls delta-epsilon
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
+  sweeper:
+    params:
+      injection.prevalence: 0.01,0.05,0.2
+      oracle.delay.mean_seconds: 0,300,1800,7200
+      oracle.budget: 0.001,0.01,0.05
+      detector: adwin,ks_scores
+      seed: range(0,5)

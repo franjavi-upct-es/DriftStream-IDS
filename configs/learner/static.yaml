@@ -1,0 +1,4 @@
+# configs/learner/static.yaml
+# Fitted on the warm-up slice, never updated (lower bound).
+_target_: driftstream.learners.static.StaticLearner
+max_iter: 300

@@ -1,0 +1,35 @@
+# .gitignore
+# environments
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+.coverage
+coverage.xml
+htmlcov/
+dist/
+build/
+
+# data and outputs
+data/raw/
+data/interim/
+data/processed/**/*.parquet
+results/runs/
+results/stream/
+mlruns/
+spark-checkpoints/
+outputs/
+multirun/
+
+# notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# essay build
+essay/build/
+
+# local env
+.env

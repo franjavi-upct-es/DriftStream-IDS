@@ -1,0 +1,7 @@
+# configs/policy/gate.yaml
+# Promotion-gate wrapper around a retraining policy (P1).
+_target_: driftstream.policies.gate.GatePolicy
+holdout_fraction: 0.2
+epsilon_gate: 0.01
+fpr_slack: 0.01
+min_holdout: 100

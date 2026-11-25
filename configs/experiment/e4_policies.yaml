@@ -1,0 +1,19 @@
+# @package _global_
+# configs/experiment/e4_policies.yaml
+# E4: policy comparison at fixed (D, B) (ARCHITECTURE.md §11.6).
+experiment: e4_policies
+defaults:
+  - override /dataset: cicids2017
+  - override /hydra/launcher: joblib
+oracle:
+  budget: 0.01
+  delay:
+    mean_seconds: 1800
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
+  sweeper:
+    params:
+      policy: continuous,periodic,on_detect_sup,on_detect_unsup,budget_burst
+      seed: range(0,10)

@@ -1,0 +1,4 @@
+# configs/learner/arf.yaml
+# River Adaptive Random Forest (main online learner).
+_target_: driftstream.learners.arf.ARFLearner
+n_models: 10

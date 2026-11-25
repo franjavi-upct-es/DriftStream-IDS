@@ -1,0 +1,18 @@
+# @package _global_
+# configs/experiment/e0_theory.yaml
+# E0: theory validation on synthetic streams (ARCHITECTURE.md §11.2).
+experiment: e0_theory
+defaults:
+  - override /dataset: synth_gaussian
+  - override /hydra/launcher: joblib
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
+  sweeper:
+    params:
+      dataset: synth_gaussian,synth_sea
+      oracle.delay.mean_seconds: 0,250,500,1000,2000,4000
+      oracle.budget: 0.005,0.01,0.02,0.05
+      selector.rho: 0.25,0.5,1.0
+      seed: range(0,10)

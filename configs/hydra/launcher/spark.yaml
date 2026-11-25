@@ -1,0 +1,5 @@
+# configs/hydra/launcher/spark.yaml
+# Placeholder for the optional Spark batch sweep runner (ADR-013).
+# Not implemented yet; selecting it will fail until the launcher exists.
+_target_: hydra_plugins.driftstream_spark_launcher.SparkLauncher
+master: local[*]

@@ -1,0 +1,47 @@
+# .pre-commit-config.yaml
+# Local hooks run the project's own pinned tools through uv, so hook
+# versions never drift from uv.lock.
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+          - id: check-yaml
+            args: [--unsafe]
+          - id: check-toml
+          - id: check-added-large-files
+            args: [--maxkb=1024]
+          - id: check-merge-conflict
+          - id: mixed-line-ending
+            args: [--fix=lf]
+
+    - repo: local
+      hooks:
+          - id: ruff-check
+            name: ruff check
+            entry: uv run ruff check --fix
+            language: system
+            types_or: [python, pyi]
+          - id: ruff-format
+            name: ruff format
+            entry: uv run ruff format
+            language: system
+            types_or: [python, pyi]
+          - id: mypy
+            name: mypy
+            entry: uv run mypy
+            language: system
+            pass_filenames: false
+            files: ^src/
+          - id: import-linter
+            name: import contracts
+            entry: uv run lint-imports
+            language: system
+            pass_filenames: false
+            files: ^src/
+          - id: no-ipynb
+            name: notebooks are committed as percent-format .py only
+            entry: notebooks must be .py files (PROJECT_STRUCTURE.md §11)
+            language: fail
+            files: \.ipynb$

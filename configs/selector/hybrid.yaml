@@ -1,0 +1,4 @@
+# configs/selector/hybrid.yaml
+# Share rho random (feeds supervised detectors), rest uncertainty.
+_target_: driftstream.selection.hybrid.HybridSelector
+rho: 0.5

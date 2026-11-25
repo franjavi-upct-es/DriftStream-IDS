@@ -1,0 +1,6 @@
+# configs/learner/batch.yaml
+# Sliding-window HistGradientBoosting retrained on buffered labels.
+_target_: driftstream.learners.batch.BatchLearner
+buffer_size: 20000
+max_iter: 200
+class_weight: balanced

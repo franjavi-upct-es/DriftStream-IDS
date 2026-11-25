@@ -1,0 +1,27 @@
+# configs/config.yaml
+# Root defaults list (PROJECT_STRUCTURE.md §5.1).
+defaults:
+    - dataset: cicids2017
+    - features: default
+    - learner: arf
+    - detector: adwin
+    - oracle: constant
+    - selector: hybrid
+    - policy: on_detect_sup
+    - evaluation: default
+    - stream: local
+    - _self_
+    # Selected with `experiment=<name>`; listed after _self_ so experiment
+    # files can override root values such as `experiment` and `seed`.
+    - experiment: null
+
+seed: 0
+experiment: adhoc
+output_root: results/runs
+skip_if_done: true
+track_mlflow: false
+
+run:
+    threshold: 0.5 # decision threshold on the attack score
+    tick_seconds: 60 # policy tick period, seconds of event time
+    log_every: 1000 # metric sampling period, flows

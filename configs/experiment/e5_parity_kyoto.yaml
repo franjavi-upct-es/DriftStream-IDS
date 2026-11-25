@@ -1,0 +1,11 @@
+# @package _global_
+# configs/experiment/e5_parity_kyoto.yaml
+# E5: streaming parity on a 30-day Kyoto slice (ARCHITECTURE.md §11.7).
+experiment: e5_parity_kyoto
+defaults:
+  - override /dataset: kyoto2006
+slice: {days: 30}
+stream:
+  partitions: 1
+  replay_speed: 3600
+triggers_seconds: [1, 5, 30]

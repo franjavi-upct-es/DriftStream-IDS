@@ -1,0 +1,7 @@
+# configs/stream/local.yaml
+# Local Kafka-Spark testbed (ARCHITECTURE.md §13); bound to localhost.
+bootstrap_servers: 127.0.0.1:9092
+partitions: 1
+trigger_seconds: 1
+replay_speed: 60
+watermark_seconds: 120

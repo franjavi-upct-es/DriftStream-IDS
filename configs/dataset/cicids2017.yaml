@@ -1,0 +1,8 @@
+# configs/dataset/cicids2017.yaml
+# CIC-IDS2017 corrected (DistriNet / KU Leuven). Never the original CSVs.
+name: cicids2017
+path: data/processed/cicids2017/flows.parquet
+warmup: {days: ["2017-07-03", "2017-07-04"]}  # Monday + Tuesday
+subsample: 0.25           # uniform fraction, chosen after T3.12
+attempted_policy: benign  # benign | attack | drop (ablation A-ATT)
+onsets: data/processed/cicids2017/drift_onsets.json

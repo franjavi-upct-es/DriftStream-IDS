@@ -1,0 +1,4 @@
+# configs/policy/periodic.yaml
+# Retrain every T seconds of event time (CIC: 1 h; Kyoto: 7 days).
+_target_: driftstream.policies.periodic.PeriodicPolicy
+period_seconds: 3600

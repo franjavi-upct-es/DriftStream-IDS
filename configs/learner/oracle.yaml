@@ -1,0 +1,5 @@
+# configs/learner/oracle.yaml
+# ARF with D = 0 and B = 1: upper reference for regret.
+_target_: driftstream.learners.arf.ARFLearner
+n_models: 10
+reference: oracle

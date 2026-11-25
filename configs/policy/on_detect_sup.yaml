@@ -1,0 +1,4 @@
+# configs/policy/on_detect_sup.yaml
+# ODS: retrain on labels after the supervised change-point estimate.
+_target_: driftstream.policies.on_detect.OnDetectSupervised
+m_min: 500

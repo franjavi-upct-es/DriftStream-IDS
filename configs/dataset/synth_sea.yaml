@@ -1,0 +1,10 @@
+# configs/dataset/synth_sea.yaml
+# River SEA + ConceptDriftStream (pure P(y|x) drift): H2 negative control.
+name: synth_sea
+n_samples: 200000
+n_warm: 20000
+rate: 10.0
+t0_index: 100000
+variant_before: 0
+variant_after: 2
+width: 1 # abrupt drift

@@ -1,0 +1,6 @@
+# configs/detector/adwin.yaml
+# Supervised: ADWIN on error bits of random-substream labels.
+_target_: driftstream.detectors.adwin.ADWINDetector
+kind: supervised
+delta: 0.002
+clock: 32

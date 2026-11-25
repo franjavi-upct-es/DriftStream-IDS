@@ -1,0 +1,158 @@
+# pyproject.toml
+# Project metadata, dependencies and tool configuration for DriftStream-IDS.
+# Exact versions are pinned by uv.lock (see PROJECT_STRUCTURE.md §15).
+
+[project]
+name = "driftstream-ids"
+version = "0.1.0"
+description = "Verification latency and labelling budgets in streaming NIDS"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Francisco Javier Mercader Martínez" }]
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "numpy",
+  "pandas",
+  "pyarrow",
+  "scipy",
+  "scikit-learn",
+  "river",
+  "hydra-core",
+  "hydra-joblib-launcher",
+  "omegaconf",
+  "pydantic>=2",
+  "typer",
+  "rich",
+  "cloudpickle",
+  "joblib",
+  "statsmodels",
+  "lifelines",
+  "matplotlib",
+]
+
+[project.urls]
+Repository = "https://github.com/franjavi-upct-es/DriftStream-IDS"
+Issues = "https://github.com/franjavi-upct-es/DriftStream-IDS/issues"
+
+[project.optional-dependencies]
+# Kyoto ETL, Structured Streaming scorer and the optional sweep runner.
+spark = ["pyspark"]
+# Kafka services and the MLflow model registry used in stream mode.
+stream = ["confluent-kafka", "mlflow"]
+# Optional experiment tracking in simulate mode.
+tracking = ["mlflow"]
+
+[project.scripts]
+driftstream = "driftstream.cli:app"
+
+[dependency-groups]
+dev = [
+  "ruff",
+  "mypy",
+  "pytest",
+  "pytest-cov",
+  "hypothesis",
+  "import-linter",
+  "jupytext",
+  "pre-commit",
+  "ipykernel",
+  "pandas-stubs",
+  "types-PyYAML",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/driftstream"]
+
+# --------------------------------------------------------------------------
+# Ruff: linter + formatter, line length 80 (PROJECT_STRUCTURE.md §10).
+# --------------------------------------------------------------------------
+[tool.ruff]
+line-length = 80
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "N", "D", "PL", "RUF", "NPY"]
+ignore = ["D105", "D107", "PLR0913"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "PLR2004"]
+"notebooks/**" = ["D", "E402"]
+"scripts/**" = ["D"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["driftstream"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+# --------------------------------------------------------------------------
+# mypy: strict where correctness is critical, standard elsewhere.
+# --------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "src"
+packages = ["driftstream"]
+# Third-party overrides below are unused until their packages are imported.
+warn_unused_configs = false
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+  "driftstream.core.*",
+  "driftstream.oracle.*",
+  "driftstream.selection.*",
+  "driftstream.evaluation.*",
+  "driftstream.theory.*",
+]
+strict = true
+
+[[tool.mypy.overrides]]
+# Third-party libraries without bundled type information.
+module = [
+  "river.*",
+  "sklearn.*",
+  "scipy.*",
+  "joblib.*",
+  "cloudpickle.*",
+  "statsmodels.*",
+  "lifelines.*",
+  "pyspark.*",
+  "confluent_kafka.*",
+  "mlflow.*",
+  "hydra_plugins.*",
+]
+ignore_missing_imports = true
+
+# --------------------------------------------------------------------------
+# pytest: markers from PROJECT_STRUCTURE.md §9.1.
+# --------------------------------------------------------------------------
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+markers = [
+  "unit: fast, isolated",
+  "property: hypothesis-based invariants",
+  "integration: multiple components, small data",
+  "slow: > 30 s",
+  "stream: requires docker compose stack",
+]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["driftstream"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

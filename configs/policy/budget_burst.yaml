@@ -1,0 +1,6 @@
+# configs/policy/budget_burst.yaml
+# ODU + query-rate burst financed by saved tokens (P1).
+_target_: driftstream.policies.budget_burst.BudgetBurstPolicy
+m_min: 500
+factor: 5
+horizon_seconds: 3600

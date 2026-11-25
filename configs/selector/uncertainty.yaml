@@ -1,0 +1,3 @@
+# configs/selector/uncertainty.yaml
+# Variable-uncertainty strategy with randomisation (Zliobaite et al. 2014).
+_target_: driftstream.selection.uncertainty.UncertaintySelector

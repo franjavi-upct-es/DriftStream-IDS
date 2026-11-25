@@ -1,0 +1,56 @@
+# .github/workflows/ci.yml
+# Lint, import contracts, type checks and fast tests on every push and PR
+# (PROJECT_STRUCTURE.md §12.3).
+name: ci
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+              with:
+                  enable-cache: true
+
+            - name: Install Python and dependencies
+              run: uv sync --frozen --all-groups
+
+            - name: Ruff lint
+              run: uv run ruff check --output-format=github .
+
+            - name: Ruff format
+              run: uv run ruff format --check .
+
+            - name: Import contracts
+              run: uv run lint-imports
+
+            - name: mypy
+              run: uv run mypy
+
+            - name: Unit and property tests
+              run: >-
+                  uv run pytest -m "unit or property"
+                  --cov --cov-report=term --cov-report=xml
+
+            - name: Upload coverage report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-xml
+                  path: coverage.xml
+                  if-no-files-found: ignore

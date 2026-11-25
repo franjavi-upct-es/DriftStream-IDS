@@ -1,0 +1,8 @@
+# configs/oracle/constant.yaml
+# Constant verification delay D (seconds of event time).
+_target_: driftstream.oracle.label_oracle.LabelOracle
+delay:
+  _target_: driftstream.oracle.delay_models.ConstantDelay
+  mean_seconds: 1800
+budget: 0.01              # B, long-run fraction of flows queried
+bucket_capacity: 50       # C, token-bucket cap

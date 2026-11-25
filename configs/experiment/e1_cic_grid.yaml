@@ -1,0 +1,19 @@
+# @package _global_
+# configs/experiment/e1_cic_grid.yaml
+# E1: CIC-IDS2017 factorial grid (ARCHITECTURE.md §11.3).
+experiment: e1_cic_grid
+defaults:
+  - override /dataset: cicids2017
+  - override /hydra/launcher: joblib
+hydra:
+  mode: MULTIRUN
+  launcher:
+    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
+  sweeper:
+    params:
+      oracle.delay.mean_seconds: 0,300,1800,7200
+      oracle.budget: 0.001,0.01,0.05
+      selector: random,hybrid
+      detector: none,adwin,ks_scores
+      learner: arf,batch
+      seed: range(0,5)
