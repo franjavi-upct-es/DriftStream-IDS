@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from typer.testing import CliRunner
 
@@ -12,6 +15,7 @@ from driftstream.cli import EXIT_NOT_IMPLEMENTED, app
 pytestmark = pytest.mark.unit
 
 runner = CliRunner()
+CONFIG_DIR = Path(__file__).resolve().parents[2] / "configs"
 
 # Command paths from PROJECT_STRUCTURE.md §6, with the minimum arguments
 # each one needs to get past argument parsing.
@@ -21,7 +25,6 @@ PLANNED_COMMANDS: list[list[str]] = [
     ["data", "download", "--dataset", "all"],
     ["data", "etl", "--dataset", "cic"],
     ["data", "validate", "--dataset", "kyoto"],
-    ["theory", "predict"],
     ["analyze", "aggregate", "--experiment", "e1_cic_grid"],
     ["analyze", "hypotheses"],
     ["analyze", "figures"],
@@ -54,6 +57,40 @@ def test_version_prints_package_version() -> None:
 def test_planned_command_exits_not_implemented(argv: list[str]) -> None:
     result = runner.invoke(app, argv)
     assert result.exit_code == EXIT_NOT_IMPLEMENTED, result.output
+
+
+def test_theory_predict_prints_json(tmp_path: Path) -> None:
+    out = tmp_path / "theory.json"
+    argv = [
+        "theory",
+        "predict",
+        "--rate",
+        "10",
+        "--eps0",
+        "0.05",
+        "--eps1",
+        "0.25",
+        "--m-a",
+        "500",
+        "--n-pre-flows",
+        "100000",
+        "--n-flows",
+        "200000",
+        "--config-dir",
+        str(CONFIG_DIR),
+        "--out",
+        str(out),
+        "oracle.delay.mean_seconds=600",
+        "detector=ks_scores",
+    ]
+    result = runner.invoke(app, argv)
+    assert result.exit_code == 0, result.output
+    payload = json.loads(out.read_text())
+    assert payload["inputs"]["delay"] == 600.0
+    pred = payload["prediction"]
+    assert pred["tau_det_sup"] is None  # KS config: no supervised detector
+    assert pred["tau_det_unsup"] is None  # no KS distance given
+    assert pred["floor"] == pytest.approx(600 + 450 / 0.1)
 
 
 def test_unknown_dataset_is_rejected() -> None:

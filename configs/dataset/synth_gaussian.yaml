@@ -6,4 +6,5 @@ n_warm: 20000
 rate: 10.0 # lambda, flows per second of event time
 t0_index: 100000 # index of the first post-drift sample
 shift: 1.0 # mean-shift magnitude (controls delta-epsilon)
+target_delta_eps: 0.2 # error jump the generator calibrates to (T3.10)
 dim: 10

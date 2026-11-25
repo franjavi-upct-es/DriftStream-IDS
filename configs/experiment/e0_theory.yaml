@@ -3,16 +3,33 @@
 # E0: theory validation on synthetic streams (ARCHITECTURE.md §11.2).
 experiment: e0_theory
 defaults:
-  - override /dataset: synth_gaussian
-  - override /hydra/launcher: joblib
+    - override /dataset: synth_gaussian
+    - override /hydra/launcher: joblib
 hydra:
-  mode: MULTIRUN
-  launcher:
-    n_jobs: 16            # 20-core laptop; headroom for OS and Docker
-  sweeper:
-    params:
-      dataset: synth_gaussian,synth_sea
-      oracle.delay.mean_seconds: 0,250,500,1000,2000,4000
-      oracle.budget: 0.005,0.01,0.02,0.05
-      selector.rho: 0.25,0.5,1.0
-      seed: range(0,10)
+    mode: MULTIRUN
+    launcher:
+        n_jobs: 16 # 20-core laptop; headroom for OS and Docker
+    sweeper:
+        params:
+            dataset: synth_gaussian,synth_sea
+            oracle.delay.mean_seconds: 0,250,500,1000,2000,4000
+            oracle.budget: 0.005,0.01,0.02,0.05
+            dataset.target_delta_eps: 0.1,0.2,0.3
+            detector: adwin,ks_scores
+            selector.rho: 0.25,0.5,1.0
+            seed: range(0,10)
+
+# Exploratory sensitivity analysis (ROADMAP T1.5, preregistration §8).
+# Not part of the main sweep: the runner expands it on the base cell,
+# varying one parameter at a time (T4.7).
+sensitivity:
+    base:
+        dataset: synth_gaussian
+        target_delta_eps: 0.2
+        budget: 0.01
+        rho: 0.5
+        delays_seconds: [0, 1000, 4000]
+        seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    vary:
+        detector.delta: [0.0002, 0.002, 0.02] # ADWIN, main default 0.002
+        detector.w_test: [500, 1000, 2000] # KS, main default 1000

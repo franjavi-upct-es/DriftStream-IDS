@@ -74,3 +74,11 @@ def test_every_experiment_has_a_card(repo_root: Path) -> None:
     for name in _experiments():
         card = cards / f"{name.split('_')[0]}.md"
         assert card.is_file(), f"missing experiment card for {name}"
+
+
+def test_e0_declares_the_sensitivity_plan() -> None:
+    cfg = compose(config_name="config", overrides=["experiment=e0_theory"])
+    vary = cfg.sensitivity.vary
+    assert list(vary["detector.delta"]) == [0.0002, 0.002, 0.02]
+    assert list(vary["detector.w_test"]) == [500, 1000, 2000]
+    assert cfg.sensitivity.base.budget == 0.01

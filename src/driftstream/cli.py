@@ -9,7 +9,11 @@ never mistaken for a silent success.
 
 from __future__ import annotations
 
+import json
+import math
+from dataclasses import asdict
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated, NoReturn
 
 import typer
@@ -153,17 +157,89 @@ def data_validate(
 # --------------------------------------------------------------------------
 # theory
 # --------------------------------------------------------------------------
+def _json_safe(value: object) -> object:
+    """Replace non-finite floats by ``None`` (never happens / censored)."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, dict):
+        return {k: _json_safe(v) for k, v in value.items()}
+    return value
+
+
 @theory_app.command("predict")
 def theory_predict(
+    rate: Annotated[float, typer.Option(help="Arrival rate, flows/s.")],
+    eps0: Annotated[float, typer.Option(help="Pre-drift error rate.")],
+    eps1: Annotated[float, typer.Option(help="Post-drift error rate.")],
+    m_a: Annotated[
+        float,
+        typer.Option("--m-a", help="Post-drift labels the learner needs."),
+    ],
+    n_pre_flows: Annotated[
+        int, typer.Option(help="Flows seen by the detector before the drift.")
+    ],
+    overrides: Annotated[
+        list[str] | None,
+        typer.Argument(help="Hydra overrides, e.g. oracle.budget=0.05."),
+    ] = None,
+    ks_distance: Annotated[
+        float | None,
+        typer.Option(help="KS distance between pre/post score CDFs."),
+    ] = None,
+    n_flows: Annotated[
+        int, typer.Option(help="Flows in the streaming phase.")
+    ] = 1,
+    config_dir: Annotated[
+        Path, typer.Option(help="Hydra config directory.")
+    ] = Path("configs"),
     config_name: Annotated[
         str, typer.Option(help="Hydra config name.")
     ] = "config",
-    overrides: Annotated[
-        list[str] | None, typer.Argument(help="Hydra overrides.")
+    out: Annotated[
+        Path | None, typer.Option(help="Also write the JSON to this file.")
     ] = None,
 ) -> None:
-    """Print and save the analytic predictions for a config."""
-    _not_implemented("theory predict", "T1.3")
+    """Print the analytic predictions (seconds after onset) as JSON.
+
+    Design factors (D, B, rho, C, detector and policy parameters) come from
+    the Hydra config; measured stream quantities come from the options.
+    ``null`` means the event never happens under the model.
+    """
+    from hydra import compose, initialize_config_dir  # noqa: PLC0415
+    from omegaconf import OmegaConf  # noqa: PLC0415
+
+    from driftstream.theory.bounds import predict  # noqa: PLC0415
+    from driftstream.theory.from_config import (  # noqa: PLC0415
+        StreamQuantities,
+        inputs_from_config,
+    )
+
+    with initialize_config_dir(
+        config_dir=str(config_dir.resolve()), version_base="1.3"
+    ):
+        cfg = compose(config_name=config_name, overrides=overrides or [])
+    plain = OmegaConf.to_container(cfg, resolve=True)
+    assert isinstance(plain, dict)
+    cfg_map = {str(k): v for k, v in plain.items()}
+    stream = StreamQuantities(
+        rate=rate,
+        eps0=eps0,
+        eps1=eps1,
+        m_a=m_a,
+        n_pre_flows=n_pre_flows,
+        ks_distance=ks_distance,
+        n_flows=n_flows,
+    )
+    inputs = inputs_from_config(cfg_map, stream)
+    payload = {
+        "inputs": _json_safe(asdict(inputs)),
+        "prediction": _json_safe(predict(inputs).to_dict()),
+    }
+    text = json.dumps(payload, indent=2)
+    typer.echo(text)
+    if out is not None:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(text + "\n", encoding="utf-8")
 
 
 # --------------------------------------------------------------------------

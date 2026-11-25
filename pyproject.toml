@@ -77,7 +77,9 @@ src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "N", "D", "PL", "RUF", "NPY"]
-ignore = ["D105", "D107", "PLR0913"]
+# Model functions mirror the equations of docs/theory.md, so they take
+# many (documented) parameters.
+ignore = ["D105", "D107", "PLR0913", "PLR0917"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

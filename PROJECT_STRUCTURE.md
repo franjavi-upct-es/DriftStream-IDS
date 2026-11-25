@@ -243,8 +243,9 @@ driftstream-ids/
 │       │   └── writer.py             # Columnar run outputs + manifest
 │       │
 │       ├── theory/
-│       │   ├── bounds.py             # τ_det, τ_rec, regret predictions
-│       │   └── adwin_replay.py       # Numerical n* from River's cut condition
+│       │   ├── bounds.py             # τ_det, τ_rec, floor, regret predictions
+│       │   ├── adwin_replay.py       # Mean-field n* from River's ADWIN rule + Monte Carlo
+│       │   └── from_config.py        # Resolved config + stream quantities → TheoryInputs
 │       │
 │       ├── analysis/
 │       │   ├── aggregate.py          # Collect runs → results/aggregated/*.parquet
@@ -309,6 +310,8 @@ driftstream-ids/
 │   │   ├── test_cli.py               # Every planned command exists (exit code 3)
 │   │   ├── test_config_tree.py       # Every group option and experiment composes
 │   │   ├── test_repo_conventions.py  # First-line path comment in every file
+│   │   ├── test_adwin_replay.py      # ADWIN port = River alarms; n* monotone; MC check
+│   │   ├── test_theory_from_config.py
 │   │   ├── test_budget.py
 │   │   ├── test_delay_models.py
 │   │   ├── test_label_oracle.py
@@ -321,6 +324,7 @@ driftstream-ids/
 │   │   ├── test_theory_bounds.py
 │   │   └── test_schemas.py
 │   ├── property/
+│   │   ├── test_theory_floor.py      # No policy formula beats the recovery floor
 │   │   ├── test_budget_prefix_invariant.py
 │   │   ├── test_delay_causality.py
 │   │   └── test_event_ordering.py
@@ -344,7 +348,7 @@ driftstream-ids/
 │   └── tables/                       # .md + .tex (committed)
 │
 ├── docs/
-│   ├── theory.md                     # Full derivations behind ARCHITECTURE §4 (Phase 1)
+│   ├── theory.md                     # Full derivations behind ARCHITECTURE §4
 │   ├── preregistration.md            # H1–H5, analysis plan (frozen at M3, tag prereg-v1)
 │   ├── lab_notebook.md               # Dated log of findings and surprises
 │   ├── decision_log.md               # Small decisions not worth an ADR
@@ -642,24 +646,24 @@ mapping table, so invalid combinations are impossible.
 Makefile. Commands that are not implemented yet exit with **code 3** and name
 the ROADMAP task that will implement them.
 
-| Command                                                          | What it does                                          | Task        |
-| ---------------------------------------------------------------- | ----------------------------------------------------- | ----------- |
-| `driftstream version`                                            | Print the package version                             | ✅          |
-| `driftstream data download [--dataset cic\|kyoto\|all]`          | Download raw data, verify `CHECKSUMS.raw`             | T2.1 / T2.3 |
-| `driftstream data etl --dataset cic`                             | pandas ETL for CIC-IDS2017 corrected                  | T2.2        |
-| `driftstream data etl --dataset kyoto [--spark-master local[*]]` | PySpark ETL for Kyoto 2006+                           | T2.4        |
-| `driftstream data validate --dataset …`                          | Post-ETL assertions; writes `stats.json`              | T2.5        |
-| `driftstream theory predict [--config-name …] [overrides]`       | Print/save analytic predictions for a config          | T1.3        |
-| `driftstream run [overrides]`                                    | Run one config (or a sweep, via `experiment=…`)       | T3.8        |
-| `driftstream bench`                                              | Measure simulator throughput (flows/s)                | T3.12       |
-| `driftstream analyze aggregate --experiment e1_cic_grid`         | Runs → `results/aggregated/`                          | T6.1        |
-| `driftstream analyze hypotheses`                                 | Apply pre-registered H1–H5 decision rules             | T6.2        |
-| `driftstream analyze figures` / `tables`                         | Regenerate all essay figures/tables                   | T6.3 / T6.4 |
-| `driftstream stream up\|down\|status`                            | Docker compose lifecycle                              | T5.1        |
-| `driftstream stream run --experiment e5_parity_cic`              | Replay through Kafka–Spark; sink to `results/stream/` | T5.8        |
-| `driftstream stream compare --run …`                             | Parity metrics: stream vs. simulator                  | T5.6        |
-| `driftstream essay build [--format pdf\|docx]`                   | Pandoc build                                          | T7.8        |
-| `driftstream essay wordcount`                                    | Word count excluding references                       | T7.4        |
+| Command                                                                                                                 | What it does                                                   | Task        |
+| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------- |
+| `driftstream version`                                                                                                   | Print the package version                                      | ✅          |
+| `driftstream data download [--dataset cic\|kyoto\|all]`                                                                 | Download raw data, verify `CHECKSUMS.raw`                      | T2.1 / T2.3 |
+| `driftstream data etl --dataset cic`                                                                                    | pandas ETL for CIC-IDS2017 corrected                           | T2.2        |
+| `driftstream data etl --dataset kyoto [--spark-master local[*]]`                                                        | PySpark ETL for Kyoto 2006+                                    | T2.4        |
+| `driftstream data validate --dataset …`                                                                                 | Post-ETL assertions; writes `stats.json`                       | T2.5        |
+| `driftstream theory predict --rate … --eps0 … --eps1 … --m-a … --n-pre-flows … [--ks-distance …] [--out …] [overrides]` | Print (and save) the analytic predictions for a config as JSON | ✅          |
+| `driftstream run [overrides]`                                                                                           | Run one config (or a sweep, via `experiment=…`)                | T3.8        |
+| `driftstream bench`                                                                                                     | Measure simulator throughput (flows/s)                         | T3.12       |
+| `driftstream analyze aggregate --experiment e1_cic_grid`                                                                | Runs → `results/aggregated/`                                   | T6.1        |
+| `driftstream analyze hypotheses`                                                                                        | Apply pre-registered H1–H5 decision rules                      | T6.2        |
+| `driftstream analyze figures` / `tables`                                                                                | Regenerate all essay figures/tables                            | T6.3 / T6.4 |
+| `driftstream stream up\|down\|status`                                                                                   | Docker compose lifecycle                                       | T5.1        |
+| `driftstream stream run --experiment e5_parity_cic`                                                                     | Replay through Kafka–Spark; sink to `results/stream/`          | T5.8        |
+| `driftstream stream compare --run …`                                                                                    | Parity metrics: stream vs. simulator                           | T5.6        |
+| `driftstream essay build [--format pdf\|docx]`                                                                          | Pandoc build                                                   | T7.8        |
+| `driftstream essay wordcount`                                                                                           | Word count excluding references                                | T7.4        |
 
 ---
 
@@ -775,21 +779,21 @@ whole `tests/` tree.
 
 ### 9.2 What every component must have
 
-| Component    | Minimum tests                                                                                                             |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| Repository   | First-line path comment in every file; CLI lists every planned command; every config option and experiment composes       |
-| Token bucket | Prefix invariant (property); burst financing never exceeds the long-run budget                                            |
-| Delay models | Mean matches `D` (statistical tolerance); non-negative; seeded reproducibility                                            |
-| Label oracle | No release before `release_time`; FIFO among equal times; memory bounded                                                  |
-| Selectors    | Spending rate converges to `B`; `ρ` split respected; reason tags correct                                                  |
-| Detectors    | Detect a synthetic abrupt change; no alarm on a stationary stream at the configured α (false-alarm rate within tolerance) |
-| Policies     | Pure function behaviour: given a context, they return the expected actions                                                |
-| Metrics      | Hand-computed examples; censoring handled                                                                                 |
-| Regret       | Pairing by `flow_id`; zero when compared with itself                                                                      |
-| Theory       | `n*` monotone in Δε and δ; `τ_rec` floor ≥ `D`                                                                            |
-| Engine       | Determinism; River parity at `B = 1`; no label leak                                                                       |
-| ETL          | Fixture files → expected schema; leakage columns absent; monotonic time                                                   |
-| Stream       | Smoke test: 1k flows end-to-end; all topics non-empty; labels released after delay                                        |
+| Component    | Minimum tests                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Repository   | First-line path comment in every file; CLI lists every planned command; every config option and experiment composes                      |
+| Token bucket | Prefix invariant (property); burst financing never exceeds the long-run budget                                                           |
+| Delay models | Mean matches `D` (statistical tolerance); non-negative; seeded reproducibility                                                           |
+| Label oracle | No release before `release_time`; FIFO among equal times; memory bounded                                                                 |
+| Selectors    | Spending rate converges to `B`; `ρ` split respected; reason tags correct                                                                 |
+| Detectors    | Detect a synthetic abrupt change; no alarm on a stationary stream at the configured α (false-alarm rate within tolerance)                |
+| Policies     | Pure function behaviour: given a context, they return the expected actions                                                               |
+| Metrics      | Hand-computed examples; censoring handled                                                                                                |
+| Regret       | Pairing by `flow_id`; zero when compared with itself                                                                                     |
+| Theory       | ADWIN port fires on the same indices as River; `n*` monotone in Δε and δ; mean-field ≈ Monte Carlo; no policy beats the floor (property) |
+| Engine       | Determinism; River parity at `B = 1`; no label leak                                                                                      |
+| ETL          | Fixture files → expected schema; leakage columns absent; monotonic time                                                                  |
+| Stream       | Smoke test: 1k flows end-to-end; all topics non-empty; labels released after delay                                                       |
 
 ### 9.3 Coverage target
 
