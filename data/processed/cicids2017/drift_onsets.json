@@ -1,0 +1,157 @@
+{
+  "onsets_known": true,
+  "min_family_flows": 1000,
+  "warmup_end_event_time": 1499198430.041663,
+  "families": {
+    "FTP-Patator": {
+      "onset_event_time": 1499170760.1524758,
+      "onset_utc": "2017-07-04T12:19:20.152475834+00:00",
+      "day": "2017-07-04",
+      "n_flows": 3972,
+      "in_warmup": true,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-04",
+      "on_expected_day": true
+    },
+    "SSH-Patator": {
+      "onset_event_time": 1499188141.0496159,
+      "onset_utc": "2017-07-04T17:09:01.049615860+00:00",
+      "day": "2017-07-04",
+      "n_flows": 2961,
+      "in_warmup": true,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-04",
+      "on_expected_day": true
+    },
+    "DoS Slowloris": {
+      "onset_event_time": 1499258934.5392199,
+      "onset_utc": "2017-07-05T12:48:54.539219856+00:00",
+      "day": "2017-07-05",
+      "n_flows": 3859,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-05",
+      "on_expected_day": true
+    },
+    "DoS Slowhttptest": {
+      "onset_event_time": 1499260537.93681,
+      "onset_utc": "2017-07-05T13:15:37.936810017+00:00",
+      "day": "2017-07-05",
+      "n_flows": 1740,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-05",
+      "on_expected_day": true
+    },
+    "DoS Hulk": {
+      "onset_event_time": 1499262203.1947038,
+      "onset_utc": "2017-07-05T13:43:23.194703817+00:00",
+      "day": "2017-07-05",
+      "n_flows": 158468,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-05",
+      "on_expected_day": true
+    },
+    "DoS GoldenEye": {
+      "onset_event_time": 1499263803.2317529,
+      "onset_utc": "2017-07-05T14:10:03.231752872+00:00",
+      "day": "2017-07-05",
+      "n_flows": 7567,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-05",
+      "on_expected_day": true
+    },
+    "Heartbleed": {
+      "onset_event_time": 1499278335.650811,
+      "onset_utc": "2017-07-05T18:12:15.650810957+00:00",
+      "day": "2017-07-05",
+      "n_flows": 11,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-05",
+      "on_expected_day": true
+    },
+    "Web Attack - Brute Force": {
+      "onset_event_time": 1499343567.660566,
+      "onset_utc": "2017-07-06T12:19:27.660566092+00:00",
+      "day": "2017-07-06",
+      "n_flows": 73,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-06",
+      "on_expected_day": true
+    },
+    "Web Attack - XSS": {
+      "onset_event_time": 1499346976.603214,
+      "onset_utc": "2017-07-06T13:16:16.603214025+00:00",
+      "day": "2017-07-06",
+      "n_flows": 18,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-06",
+      "on_expected_day": true
+    },
+    "Web Attack - SQL Injection": {
+      "onset_event_time": 1499348145.73295,
+      "onset_utc": "2017-07-06T13:35:45.732949972+00:00",
+      "day": "2017-07-06",
+      "n_flows": 13,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-06",
+      "on_expected_day": true
+    },
+    "Infiltration - Portscan": {
+      "onset_event_time": 1499360431.7067552,
+      "onset_utc": "2017-07-06T17:00:31.706755161+00:00",
+      "day": "2017-07-06",
+      "n_flows": 65422,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-06",
+      "on_expected_day": true
+    },
+    "Infiltration": {
+      "onset_event_time": 1499361542.54721,
+      "onset_utc": "2017-07-06T17:19:02.547209978+00:00",
+      "day": "2017-07-06",
+      "n_flows": 36,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-06",
+      "on_expected_day": true
+    },
+    "Botnet": {
+      "onset_event_time": 1499432653.990571,
+      "onset_utc": "2017-07-07T13:04:13.990571022+00:00",
+      "day": "2017-07-07",
+      "n_flows": 736,
+      "in_warmup": false,
+      "eligible_per_onset": false,
+      "expected_day": "2017-07-07",
+      "on_expected_day": true
+    },
+    "Portscan": {
+      "onset_event_time": 1499446532.11709,
+      "onset_utc": "2017-07-07T16:55:32.117089987+00:00",
+      "day": "2017-07-07",
+      "n_flows": 159066,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-07",
+      "on_expected_day": true
+    },
+    "DDoS": {
+      "onset_event_time": 1499453791.796937,
+      "onset_utc": "2017-07-07T18:56:31.796936989+00:00",
+      "day": "2017-07-07",
+      "n_flows": 95144,
+      "in_warmup": false,
+      "eligible_per_onset": true,
+      "expected_day": "2017-07-07",
+      "on_expected_day": true
+    }
+  }
+}

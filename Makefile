@@ -17,7 +17,7 @@ help: ## List the available targets
 
 # ---------------------------------------------------------------- Phase 0
 setup: ## Create the environment and install the git hooks
-	$(UV) sync --all-groups
+	$(UV) sync --all-extras
 	@if [ -d .git ]; then $(RUN) pre-commit install; fi
 
 lint: ## Ruff lint + format check + import contracts

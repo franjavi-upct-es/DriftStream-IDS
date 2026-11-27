@@ -1,4 +1,5 @@
 <!-- docs/adr/0004-corrected-cicids2017-only.md -->
+
 # ADR-004 — Use only the corrected CIC-IDS2017
 
 - **Status:** accepted
@@ -7,18 +8,27 @@
 
 ## Context
 
-Engelen et al. (2021) report that a large share of the original CIC-IDS2017 traces had to be reconstructed or relabelled; Arp et al. (2022) list such label errors as an evaluation pitfall.
+Engelen et al. (2021) report that a large share of the original CIC-IDS2017
+traces had to be reconstructed or relabelled; Arp et al. (2022) list such label
+errors as an evaluation pitfall.
 
 ## Decision
 
-Only the DistriNet/KU Leuven corrected release is used. The original CSVs are never loaded, not even for comparison.
+Only the DistriNet/KU Leuven corrected release is used. The original CSVs are
+never loaded, not even for comparison.
+
+**Release (2026-11-25):** the CNS 2022 release `CICIDS2017_improved.zip` (Liu et
+al. 2022), which extends the WTMC 2021 corrections and is the version the WTMC
+2021 page now points to.
 
 ## Consequences
 
-Results are comparable with the corrected-data literature. If the corrected link fails, the fallback is corrected CSE-CIC-IDS2018 (risk R3), not the original files.
+Results are comparable with the corrected-data literature. If the corrected link
+fails, the fallback is corrected CSE-CIC-IDS2018 (risk R3), not the original
+files.
 
 ## Alternatives considered
 
-| Alternative | Why it was not chosen |
-|---|---|
+| Alternative               | Why it was not chosen                        |
+| ------------------------- | -------------------------------------------- |
 | Original CIC-IDS2017 CSVs | Documented labelling and construction errors |

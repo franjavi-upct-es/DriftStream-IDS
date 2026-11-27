@@ -1,0 +1,5 @@
+# data/CHECKSUMS.raw
+# SHA-256 of raw downloads, sha256sum format: recorded on
+# first download (trust on first use), verified afterwards.
+97fdb91d339e2d8cf5627f981b831e5e7e400b981c58181c451a38fd03c48883  raw/cicids2017_corrected/CICIDS2017_improved.zip
+ea17fe4e14c2a5e631fff0962b72a40c6b9843a226f31d900d25a9a8668d72d3  raw/kyoto2006/_zips/kyoto-2006-kaggle-v1.zip

@@ -1,8 +1,14 @@
 # configs/dataset/cicids2017.yaml
-# CIC-IDS2017 corrected (DistriNet / KU Leuven). Never the original CSVs.
+# CIC-IDS2017 improved (DistriNet / KU Leuven, CNS 2022 release).
+# Never the original CSVs (ADR-004).
 name: cicids2017
+release: cns2022 # CICIDS2017_improved.zip (Liu et al. 2022)
+raw_dir: data/raw/cicids2017_corrected
+processed_dir: data/processed/cicids2017
 path: data/processed/cicids2017/flows.parquet
-warmup: {days: ["2017-07-03", "2017-07-04"]}  # Monday + Tuesday
-subsample: 0.25           # uniform fraction, chosen after T3.12
-attempted_policy: benign  # benign | attack | drop (ablation A-ATT)
+warmup: { days: ["2017-07-03", "2017-07-04"] } # Monday + Tuesday
+subsample: 0.25 # load-time fraction, chosen after T3.12
+attempted_policy: benign # benign | attack | drop (ablation A-ATT)
+dedup: true # exact duplicates within the same second
+min_family_flows: 1000 # per-onset eligibility (prereg §4.2, OD-4)
 onsets: data/processed/cicids2017/drift_onsets.json

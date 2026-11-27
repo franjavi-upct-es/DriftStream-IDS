@@ -1,11 +1,16 @@
 # configs/dataset/kyoto2006.yaml
 # Kyoto 2006+ honeypot sessions; detector-output columns removed in ETL.
 name: kyoto2006
+raw_dir: data/raw/kyoto2006
+processed_dir: data/processed/kyoto2006
 path: data/processed/kyoto2006/flows.parquet
-source:
-    base_url: https://www.takakura.com/Kyoto_data/new_data201704/
-    archive: monthly # <YYYY>/<YYYYMM>.zip; available 2006-11 .. 2015-12
+source: # documentation only; the code pins it in driftstream.data.download
+    kaggle_dataset: harshwardhanbhangale/kyoto-2006 # mirror of new_data201704
+    kaggle_version: 1 # one archive.zip, ~14.5 GB; 2006-11 .. 2015-12, no 2010
+    archive: single # only the window's YYYYMMDD.txt day files are extracted
 window: { start: "2007-01-01", end: "2009-12-31" }
 warmup: { days: 30 } # first 30 days, fully labelled
 target_sessions: 1500000 # hash-based sampling target
+sample_seed: 0 # seed of the ETL sampling (not the run seed)
+source_tz: Asia/Tokyo # timezone of Start Time: verify on 1st month
 onsets: null # unknown onsets: analysed via regret

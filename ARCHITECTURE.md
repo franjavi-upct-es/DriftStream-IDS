@@ -603,11 +603,11 @@ metrics must match River's within numerical tolerance (integration test
 
 ### 8.1 Datasets
 
-| Dataset                     | Source                                                                                                                     | Period                                                      | Why it is used                                                        | Drift character                                |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
-| **CIC-IDS2017 (corrected)** | DistriNet / KU Leuven re-generation (Engelen et al., WTMC/SPW 2021) of the CIC dataset (Sharafaldin et al. 2018)           | 5 working days, July 2017                                   | Known onset of each attack family, so detection delay is measurable   | Mixed drift: new families arrive on known days |
-| **Kyoto 2006+**             | Kyoto University honeypot data (Song et al. 2011), `takakura.com/Kyoto_data/new_data201704/` (2006-11 → 2015-12 available) | Multi-year (MVP window: 2007-01 → 2009-12, ≈ 3.9 GB zipped) | Natural, long-horizon drift; enables realistic delays (hours to days) | Virtual + prior drift, gradual and abrupt      |
-| **Synthetic (E0)**          | River generators + custom Gaussian generator                                                                               | Configurable                                                | Exact control of $t_0$, $\Delta\varepsilon$, $\lambda$                | Abrupt, controlled                             |
+| Dataset                     | Source                                                                                                                                                                                                    | Period                                                      | Why it is used                                                        | Drift character                                |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| **CIC-IDS2017 (corrected)** | DistriNet / KU Leuven re-generation of the CIC dataset (Sharafaldin et al. 2018): WTMC 2021 corrections (Engelen et al.) refined in the **CNS 2022 release** (Liu et al. 2022), `CICIDS2017_improved.zip` | 5 working days, July 2017                                   | Known onset of each attack family, so detection delay is measurable   | Mixed drift: new families arrive on known days |
+| **Kyoto 2006+**             | Kyoto University honeypot data (Song et al. 2011), `new_data201704` release via the Kaggle mirror `harshwardhanbhangale/kyoto-2006` v1 (2006-11 → 2015-12, 2010 absent)                                                                                | Multi-year (MVP window: 2007-01 → 2009-12, 26.7 GB unpacked) | Natural, long-horizon drift; enables realistic delays (hours to days) | Virtual + prior drift, gradual and abrupt      |
+| **Synthetic (E0)**          | River generators + custom Gaussian generator                                                                                                                                                              | Configurable                                                | Exact control of $t_0$, $\Delta\varepsilon$, $\lambda$                | Abrupt, controlled                             |
 
 > **Never use the original, uncorrected CIC-IDS2017 CSVs.** Engelen et al.
 > report that more than 20 % of the original traffic traces had to be
@@ -637,38 +637,49 @@ Side files per dataset:
 
 **CIC-IDS2017 corrected** (`etl/cicids2017.py`, pandas, fits in RAM):
 
-1. Download the per-day CSVs; verify SHA-256 against `data/CHECKSUMS.raw`.
-2. Parse timestamps; **check timezone and AM/PM consistency** (a known problem
-   in the original release). Normalise to UTC and assert that timestamps
-   increase monotonically within each day after sorting.
-3. Map labels: `BENIGN → 0`; attack labels → 1. Flows labelled
-   `"<family> - Attempted"` are mapped by `attempted_policy` ∈ {`benign`
-   (default), `attack`, `drop`} → **ablation A-ATT**.
-4. Drop identifiers (`Flow ID`, `Src IP`, `Dst IP`, `Src Port`, `Timestamp` as a
-   feature).
+1. Download `CICIDS2017_improved.zip`; verify SHA-256 against
+   `data/CHECKSUMS.raw` (trust on first use); extract with a path-traversal
+   guard. One CSV per weekday (`monday.csv` … `friday.csv`).
+2. Parse timestamps (UTC, microseconds in the CNS 2022 release). **Check that
+   every row falls on its file's UTC day** (the original release had timezone
+   and AM/PM errors; tolerance 0.1 %, otherwise the ETL fails).
+3. Map labels to canonical families (unknown labels fail loudly): `BENIGN → 0`;
+   attack labels → 1. Flows labelled `"<family> - Attempted"` (no malicious
+   payload; `Attempted Category` ≠ −1) are mapped by `attempted_policy` ∈
+   {`benign` (default, as the dataset authors recommend), `attack`, `drop`} →
+   **ablation A-ATT**.
+4. Drop identifiers (`id`, `Flow ID`, `Src IP`, `Dst IP`, `Src Port`,
+   `Timestamp` as a feature); keep `attempted_category` as metadata only.
 5. Remove exact duplicate feature-and-label rows **within the same second**
    (duplicate counts are logged). Replace inf with NaN, then impute the median
    of the **warm-up slice only** (no look-ahead).
 6. Sort by `event_time`, assign `flow_id`, write Parquet partitioned by day.
-7. Optional uniform subsampling with fraction `subsample` (same fraction for all
-   classes, so prevalence and temporal structure are preserved).
+7. Subsampling with fraction `subsample` happens **at load time**, per run seed
+   (`data/subsample.py`, hash-based, the same fraction for all classes, so
+   prevalence and temporal structure are preserved); the processed table keeps
+   every flow.
 
 **Kyoto 2006+** (`etl/spark_kyoto_etl.py`, **PySpark batch**, because the raw
 text files are large):
 
-1. Read the daily tab-separated files for the configured window (unzipped from
-   the provider's monthly archives); the date is taken from the file name and
-   `Start_Time` gives the time of day.
-2. Build `event_time = date + Start_Time` (the timezone of the honeypot logs is
-   documented in ETL notes and normalised to UTC).
+1. Read the daily tab-separated files (`YYYYMMDD.txt`, 24 columns) for the
+   configured window, unzipped from the provider's monthly archives; the date is
+   taken from the file name and `Start Time` gives the time of day.
+2. Build `event_time = date + Start Time` in `source_tz` (default `Asia/Tokyo`;
+   not stated by the provider, verified on the first month, see the data card)
+   and convert to UTC. Rows with an unparsable time or a label outside {1, −1,
+   −2} are dropped and counted.
 3. Label: `1 → 0 (benign)`; `-1` (known attack) and `-2` (unknown attack) `→ 1`.
    `family ∈ {BENIGN, KNOWN, UNKNOWN}`.
 4. **Leakage removal (mandatory):** drop `IDS_detection`, `Malware_detection`
    and `Ashula_detection` (they are outputs of other detectors), plus the
    source/destination IP addresses and the source port.
-5. Deterministic sampling per day (`hash(flow_key, seed) < fraction`) to reach
-   the target size (default ≈ 1.5 M sessions for the MVP window).
-6. Write time-sorted Parquet partitioned by month; compute `stats.json`.
+5. Deterministic sampling (`xxhash64(seed, file date, raw fields)` mapped to [0,
+   1), kept below `target / valid rows`) to reach the target size (default ≈ 1.5
+   M sessions for the MVP window).
+6. Collect the sample and finish with the shared writer (`etl/writer.py`):
+   warm-up median imputation, time sort, `flow_id`, Parquet partitioned by
+   **UTC** month, `stats.json`, onsets, checksums.
 
 ### 8.4 Feature profiles (shortcut-learning control)
 
@@ -685,10 +696,12 @@ text files are large):
 | Kyoto     | First 30 days of the window                 | Remaining months   | Unknown onsets; analysed through regret and change points |
 | Synthetic | First `n_warm` samples                      | Rest               | Exact $t_0$                                               |
 
-Families with very few flows in CIC (e.g. Heartbleed, Infiltration, which have
-only a few dozen flows) are **excluded from per-onset delay analysis** (too few
-samples) but kept in the aggregate metrics. The exclusion threshold is in the
-pre-registration (§4.2).
+Families with very few flows in CIC (Heartbleed 11, Infiltration 36, the three
+web attacks 13–73, Botnet 736 effective flows in the CNS 2022 release) are
+**excluded from per-onset delay analysis** (too few samples) but kept in the
+aggregate metrics. Thursday also has a large family, **Infiltration - Portscan**
+(71,767 flows). The exclusion threshold is in the pre-registration (§4.2, OD-4);
+counts are in `docs/data_cards/cicids2017.md`.
 
 ### 8.6 Data versioning
 
@@ -1260,9 +1273,10 @@ source-verification checklist).
 | FTP-Patator, SSH-Patator, Web Brute Force       | T1110 Brute Force                       |
 | DoS Hulk / GoldenEye / slowloris / Slowhttptest | T1499 Endpoint Denial of Service        |
 | DDoS (LOIC)                                     | T1498 Network Denial of Service         |
-| PortScan                                        | T1046 Network Service Discovery         |
+| Portscan, Infiltration - Portscan               | T1046 Network Service Discovery         |
 | Web XSS, SQL Injection, Heartbleed              | T1190 Exploit Public-Facing Application |
 | Botnet (Ares)                                   | T1071 Application Layer Protocol (C2)   |
+| Infiltration                                    | T1204 User Execution (malicious file)   |
 
 ### 16.4 Business use (for the essay's "actionable advice")
 
@@ -1319,7 +1333,7 @@ Consequences → Alternatives considered.
 | ADR-001 | Science runs in a deterministic discrete-event simulator; Kafka–Spark is used for parity and feasibility | Hundreds of runs must be fast and bit-reproducible      |
 | ADR-002 | One core library shared by both modes                                                                    | No duplicated logic; parity is meaningful               |
 | ADR-003 | River for online learning and detectors; scikit-learn for batch                                          | Mature, well-cited (Montiel et al. 2021), Python-native |
-| ADR-004 | Use only the corrected CIC-IDS2017; never the original CSVs                                              | Documented labelling and construction errors            |
+| ADR-004 | Use only the corrected CIC-IDS2017 (CNS 2022 release); never the original CSVs                           | Documented labelling and construction errors            |
 | ADR-005 | Kyoto 2006+ with the detector-output columns removed                                                     | Prevents label leakage                                  |
 | ADR-006 | Token-bucket budget with burst support                                                                   | Hard prefix guarantee + enables the burst policy        |
 | ADR-007 | Supervised detectors consume only the random share of labels                                             | Unbiased error estimate (H5 trade-off)                  |

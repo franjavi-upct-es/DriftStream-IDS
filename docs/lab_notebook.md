@@ -18,6 +18,25 @@ Entry format:
 
 ---
 
+## 2026-11-25 — Phase 2: what the real CIC-IDS2017 files contain
+
+- **Context:** T2.1/T2.2; the dataset authors' labelling notebook
+  (`GintsEngelen/CNS2022_Code`) and the DistriNet download pages.
+- **Observation 1:** the latest release is CNS 2022 (`CICIDS2017_improved.zip`),
+  with timestamps in UTC (µs precision), an `id` column,
+  `"<attack> - Attempted"` labels and `Attempted Category`.
+- **Observation 2:** Thursday contains **Infiltration - Portscan** with 71,767
+  flows, which ARCHITECTURE did not list; the Thursday web attacks are tiny
+  (13–73 effective flows) and Attempted-heavy.
+- **Observation 3:** with the planned 25 % subsample, DoS Slowloris (3,859 →
+  ≈ 965) and DoS Slowhttptest (1,740 → ≈ 435) fall below the 1,000-flow
+  eligibility threshold of OD-4.
+- **Interpretation:** the streaming phase has 7 eligible onsets on the full
+  data, 5 at 25 %; the threshold should be defined on full-data counts, or the
+  subsample raised, decided after the T3.12 benchmark.
+- **Action:** canonical family list updated (`etl/cicids2017.py`, ARCHITECTURE
+  §8, §16.3); OD-4 updated in the pre-registration.
+
 ## 2026-11-25 — Phase 1: the theory meets River
 
 - **Context:** T1.1–T1.3; `theory/adwin_replay.py`, `theory/bounds.py`.

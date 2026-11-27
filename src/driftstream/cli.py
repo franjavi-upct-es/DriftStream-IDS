@@ -123,14 +123,91 @@ def bench() -> None:
 # --------------------------------------------------------------------------
 # data
 # --------------------------------------------------------------------------
+_DATASET_CONFIG = {
+    DatasetChoice.CIC: "cicids2017",
+    DatasetChoice.KYOTO: "kyoto2006",
+}
+
+
+def _selected(dataset: DatasetChoice) -> list[DatasetChoice]:
+    if dataset is DatasetChoice.ALL:
+        return [DatasetChoice.CIC, DatasetChoice.KYOTO]
+    return [dataset]
+
+
+def _dataset_cfg(
+    dataset: DatasetChoice, config_dir: Path, overrides: list[str] | None
+) -> dict[str, object]:
+    """Compose the Hydra config and return the ``dataset`` node."""
+    from hydra import compose, initialize_config_dir  # noqa: PLC0415
+    from omegaconf import OmegaConf  # noqa: PLC0415
+
+    name = _DATASET_CONFIG[dataset]
+    with initialize_config_dir(
+        config_dir=str(config_dir.resolve()), version_base="1.3"
+    ):
+        cfg = compose(
+            config_name="config",
+            overrides=[f"dataset={name}", *(overrides or [])],
+        )
+    node = OmegaConf.to_container(cfg.dataset, resolve=True)
+    assert isinstance(node, dict)
+    return {str(k): v for k, v in node.items()}
+
+
+ConfigDir = Annotated[Path, typer.Option(help="Hydra config directory.")]
+DataRoot = Annotated[Path, typer.Option(help="The data/ directory.")]
+Overrides = Annotated[
+    list[str] | None,
+    typer.Argument(help="Hydra overrides, e.g. dataset.window.end=2007-03-31."),
+]
+
+
 @data_app.command("download")
 def data_download(
     dataset: Annotated[
         DatasetChoice, typer.Option(help="Dataset to download.")
     ] = DatasetChoice.ALL,
+    strict: Annotated[
+        bool, typer.Option(help="Refuse files without a recorded checksum.")
+    ] = False,
+    extract: Annotated[bool, typer.Option(help="Unzip archives.")] = True,
+    data_root: DataRoot = Path("data"),
+    config_dir: ConfigDir = Path("configs"),
+    overrides: Overrides = None,
 ) -> None:
-    """Download raw data and verify it against data/CHECKSUMS.raw."""
-    _not_implemented("data download", "T2.1 / T2.3")
+    """Download raw data and verify it against data/CHECKSUMS.raw.
+
+    The first download of a file records its SHA-256 (trust on first use;
+    commit data/CHECKSUMS.raw afterwards); later downloads must match.
+    """
+    from driftstream.data.download import (  # noqa: PLC0415
+        Checksums,
+        cic_files,
+        kyoto_files,
+        sync,
+    )
+
+    sums = Checksums(data_root / "CHECKSUMS.raw")
+    for ds in _selected(dataset):
+        cfg = _dataset_cfg(ds, config_dir, overrides)
+        if ds is DatasetChoice.CIC:
+            files = cic_files()
+        else:
+            window = cfg["window"]
+            assert isinstance(window, dict)
+            files = kyoto_files(str(window["start"]), str(window["end"]))
+            if not all((data_root / f.target).exists() for f in files):
+                typer.echo(
+                    "kyoto2006: downloading the Kaggle archive (≈ 14.5 GB; "
+                    "an interrupted download resumes on the next run)"
+                )
+        for res in sync(files, data_root, sums, strict=strict, extract=extract):
+            got = "downloaded" if res.downloaded else "present"
+            typer.echo(
+                f"{res.file.target}: {got}, checksum {res.status}, "
+                f"{res.extracted} files extracted"
+            )
 
 
 @data_app.command("etl")
@@ -139,9 +216,47 @@ def data_etl(
     spark_master: Annotated[
         str, typer.Option(help="Spark master URL (Kyoto ETL only).")
     ] = "local[*]",
+    config_dir: ConfigDir = Path("configs"),
+    overrides: Overrides = None,
 ) -> None:
     """Run the raw-to-processed ETL for one dataset."""
-    _not_implemented("data etl", "T2.2 / T2.4")
+    from driftstream.data.splits import WarmupSpec  # noqa: PLC0415
+
+    for ds in _selected(dataset):
+        cfg = _dataset_cfg(ds, config_dir, overrides)
+        warmup = WarmupSpec.from_config(cfg["warmup"])  # type: ignore[arg-type]
+        raw, out = Path(str(cfg["raw_dir"])), Path(str(cfg["processed_dir"]))
+        if ds is DatasetChoice.CIC:
+            from driftstream.etl.cicids2017 import run_cic_etl  # noqa: PLC0415
+
+            report: object = run_cic_etl(
+                raw,
+                out,
+                warmup=warmup,
+                attempted_policy=cfg["attempted_policy"],  # type: ignore[arg-type]
+                dedup=bool(cfg["dedup"]),
+                min_family_flows=int(cfg["min_family_flows"]),  # type: ignore[call-overload]
+            )
+        else:
+            from driftstream.etl.spark_kyoto_etl import (  # noqa: PLC0415
+                run_kyoto_etl,
+            )
+
+            window = cfg["window"]
+            assert isinstance(window, dict)
+            report = run_kyoto_etl(
+                raw,
+                out,
+                start=str(window["start"]),
+                end=str(window["end"]),
+                warmup=warmup,
+                target_sessions=int(cfg["target_sessions"]),  # type: ignore[call-overload]
+                sample_seed=int(cfg["sample_seed"]),  # type: ignore[call-overload]
+                source_tz=str(cfg["source_tz"]),
+                master=spark_master,
+            )
+        rows = getattr(report, "rows_written", "?")
+        typer.echo(f"{cfg['name']}: {rows} rows written to {out}")
 
 
 @data_app.command("validate")
@@ -149,9 +264,31 @@ def data_validate(
     dataset: Annotated[
         DatasetChoice, typer.Option(help="Dataset to validate.")
     ],
+    config_dir: ConfigDir = Path("configs"),
+    overrides: Overrides = None,
 ) -> None:
-    """Run post-ETL assertions and write stats.json."""
-    _not_implemented("data validate", "T2.5")
+    """Run the post-ETL checks; exit with code 1 if any fails."""
+    from driftstream.data.splits import WarmupSpec  # noqa: PLC0415
+    from driftstream.etl.validate import validate_dataset  # noqa: PLC0415
+
+    failed = False
+    for ds in _selected(dataset):
+        cfg = _dataset_cfg(ds, config_dir, overrides)
+        report = validate_dataset(
+            str(cfg["name"]),
+            Path(str(cfg["processed_dir"])),
+            warmup=WarmupSpec.from_config(cfg["warmup"]),  # type: ignore[arg-type]
+        )
+        typer.echo(
+            f"{report.dataset}: {report.n_rows} rows, "
+            f"{len(report.passed)} checks passed, "
+            f"{len(report.failures)} failed"
+        )
+        for name, msg in report.failures.items():
+            _err.print(f"  [red]FAIL[/red] {name}: {msg}")
+        failed = failed or not report.ok
+    if failed:
+        raise typer.Exit(code=1)
 
 
 # --------------------------------------------------------------------------

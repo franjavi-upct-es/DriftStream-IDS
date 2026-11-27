@@ -85,8 +85,9 @@ The full map is in [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md).
 ## Data
 
 Raw data is never redistributed. Download scripts and checksums are provided
-from Phase 2. Kyoto 2006+ is obtained from the provider's archive
-(`https://www.takakura.com/Kyoto_data/new_data201704/`, 2006-11 → 2015-12); the
+from Phase 2. Kyoto 2006+ (`new_data201704` release, 2006-11 → 2015-12) is obtained
+from the Kaggle mirror `harshwardhanbhangale/kyoto-2006` (version 1), because the
+provider's archive (`https://www.takakura.com/Kyoto_data/`) is unreachable; the
 MVP uses 2007–2009. Cite CIC-IDS2017 (Sharafaldin et al. 2018) and its corrected
 version (Engelen et al. 2021), and Kyoto 2006+ (Song et al. 2011), as their
 providers request.

@@ -1,0 +1,51 @@
+{
+  "dataset": "kyoto2006",
+  "strict_removes": [
+    "f_destination_port_number"
+  ],
+  "profiles": {
+    "default": {
+      "numeric": [
+        "f_duration",
+        "f_source_bytes",
+        "f_destination_bytes",
+        "f_count",
+        "f_same_srv_rate",
+        "f_serror_rate",
+        "f_srv_serror_rate",
+        "f_dst_host_count",
+        "f_dst_host_srv_count",
+        "f_dst_host_same_src_port_rate",
+        "f_dst_host_serror_rate",
+        "f_dst_host_srv_serror_rate",
+        "f_destination_port_number"
+      ],
+      "categorical": [
+        "c_service",
+        "c_flag",
+        "c_protocol"
+      ]
+    },
+    "strict": {
+      "numeric": [
+        "f_duration",
+        "f_source_bytes",
+        "f_destination_bytes",
+        "f_count",
+        "f_same_srv_rate",
+        "f_serror_rate",
+        "f_srv_serror_rate",
+        "f_dst_host_count",
+        "f_dst_host_srv_count",
+        "f_dst_host_same_src_port_rate",
+        "f_dst_host_serror_rate",
+        "f_dst_host_srv_serror_rate"
+      ],
+      "categorical": [
+        "c_service",
+        "c_flag",
+        "c_protocol"
+      ]
+    }
+  }
+}
